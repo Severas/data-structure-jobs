@@ -2,12 +2,87 @@
 #include<stdlib.h>
 #include<string.h>
 #include <ctype.h>
-// Define o tamanho do caractere
+// Define o tamanho das strings
 #define MAX_LINE_SIZE 1034
 #define MAX_NAME_SIZE 1001
 #define MAX_ID_SIZE 31
 #define MAX_AGE_SIZE 3
 
+typedef enum TrieStatus{ //marcacao para o no das arvores
+    LIVRE,
+    OCUPADO
+}TrieStatus;
+
+typedef struct Trie
+{
+    struct Trie *children[27];
+    TrieStatus status;
+    int brandStruct;
+}Trie;
+
+void removeKey(Trie* T, unsigned char *key){
+    return removeKeyRecursive(T,key,strlen(key),0);
+}
+void insertTrie(Trie **T, unsigned char *key, int brandStruct){
+    return insertTrieRecursive(T, key, brandStruct, strlen(key), 0);
+}
+
+Trie* searchTrie(Trie* T, unsigned char *key){
+    return searchTrieRecursive(T, key, strlen(key), 0);
+}
+
+Trie* searchTrieRecursive(Trie* T, unsigned char *key, int sizeKey, int lenghtTrie){
+    if (T == NULL)
+        return NULL;
+    if(sizeKey == lenghtTrie)
+        return T;
+    return searchTrieRecursive(T->children[key[lenghtTrie]], key, sizeKey,lenghtTrie+1);
+}
+
+Trie* createNoh(){
+    int i;
+    Trie* noh;
+    noh = malloc(sizeof(Trie));
+    noh->status = LIVRE;
+    for ( i = 0; i < 27; i++)
+    {
+        noh->children[i] = NULL;
+    }
+    return noh;
+}
+
+void insertTrieRecursive(Trie **T, unsigned char *key, int brandStruct, int sizeKey, int lenghtTrie){
+    if(*T == NULL)
+        *T =  createNoh();
+    if(sizeKey == lenghtTrie){// inserie o valor e marcar o ultimo caracter 
+        (*T)->brandStruct = brandStruct;
+        (*T)->status = OCUPADO;
+        return;
+    }
+    return insertTrieRecursive(&(*T)->children[key[lenghtTrie]],key,brandStruct,sizeKey,lenghtTrie+1);
+}
+
+void removeKeyRecursive(Trie **T, unsigned char *key, int sizeKey, int lenghtTrie){
+    int i;
+    if(*T == NULL)
+        return;
+    if(sizeKey == lenghtTrie){
+        (*T)->status=LIVRE;
+    }else{
+        removeKeyRecursive(&(*T)->children[key[lenghtTrie]], key, sizeKey, lenghtTrie+1);
+    }
+    if((*T)->status == OCUPADO)
+        return;
+    for ( i = 0; i < 27; i++)
+    {
+        if((*T)->children[i]!=NULL)
+            return;
+    }
+    free(*T); //liberar
+    *T = NULL; // apagar para o  pai nao apontar para ele
+    
+    
+}
 
 typedef struct  dataUser
 {
@@ -22,6 +97,7 @@ int main()
     char cod,tempLine[MAX_LINE_SIZE], *token,menu[MAX_ID_SIZE+1]="Come abacate, bem. faz bem!";
     int linhas=0,i=-1,j=0,linhasSomando=0,seila;
     char sup2[MAX_LINE_SIZE],sup1[MAX_AGE_SIZE];
+    Trie* T = NULL;
     // open the arquivo.txt
     arq= fopen("banco.txt","r+");
     //verfica se  existe erro na leitura
@@ -59,7 +135,6 @@ int main()
                     strcat(data[i].name,token),
                     strcat(data[i].name," ");
                     //concatena os nomes para dentro da struct.
-                
                 token=strtok(NULL," ");
             }
             printf("%s\n", data[i].id);
