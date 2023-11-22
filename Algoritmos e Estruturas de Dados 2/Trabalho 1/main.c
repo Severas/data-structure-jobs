@@ -2,32 +2,30 @@
 *
 *ATENCAO o valor "99999" aparece disversas vezes no codigo, utlizei dele paramelhorar meu controle sobre os erros.
 * Verificar se o null eh obrigatorio com o professor ou se posso continuar com 99999
+* verificar se posso manter o retorno de posicao ou necessariamente deve ser um endereco de memoria.
 */
 
+#include <ctype.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#define MAX_LINE_SIZE 1034
-#define MAX_NAME_SIZE 1001
-#define MAX_ID_SIZE 31
 #define MAX_AGE_SIZE 3
+#define MAX_ID_SIZE 31
+#define MAX_LINE_SIZE 1035
+#define MAX_NAME_SIZE 1001
 
 typedef enum TrieStatus TrieStatus;
 typedef struct Trie Trie;
 typedef struct dataUser dataUser;
 
 Trie* createNoh();
-Trie* searchTrie(Trie *, unsigned char *);
 Trie* searchTrieRecursive(Trie *, unsigned char *, int, int);
-void insertTrie(Trie **, unsigned char *, int);
 void insertTrieRecursive(Trie **, unsigned char *, int , int , int);
 void setNameAge(Trie *, char *, dataUser *,int *, int *,int *);
 void textProcessing(char *, char *);
 void textProcessingTwo(char *);
-void removeKey(Trie *, unsigned char *);
 void removeKeyRecursive(Trie **, unsigned char *, int , int);
 
 
@@ -56,11 +54,6 @@ Trie* createNoh() {
     return noh;
 }
 
-/*reaper de busca na Trie*/
-Trie* searchTrie(Trie *Trie, unsigned char *key) {
-    return searchTrieRecursive(Trie, key, strlen(key), 0);
-}
-
 /**
  * Busca recursivamente na Trie por ate que confirme todos os elementos ou que se prove NULL.
  * Obs: retorna o indice do ponteiro que contem as informacoes correspondentes a chave.
@@ -72,11 +65,6 @@ Trie* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lengh
         return Trie->brandStruct;
     }
     return searchTrieRecursive(Trie->children[key[lenghtTrie]], key, sizeKey,lenghtTrie+1);
-}
-
-/*reaper de inserir chaves na Trie*/
-void insertTrie(Trie **Trie, unsigned char *key, int brandStruct) {
-    return insertTrieRecursive(Trie, key, brandStruct, strlen(key), 0);
 }
 
 /**
@@ -125,7 +113,7 @@ void setNameAge(Trie *Trie, char *tempLine, dataUser *data,int *i, int *j,int *l
                     token=strtok(NULL, " ");
                 }
                 if(*i>0 && *i<=lines)
-                    insertTrie(Trie, &(data[*i].id[0]), *i);
+                    insertTrieRecursive(Trie, &(data[*i].id[0]), *i, strlen(&(data[*i].id[0])), 0);
                 *j=0;
                 *i+=1;
             
@@ -148,11 +136,6 @@ void textProcessingTwo(char *input) {
     input[2]=' ';
 }
 
-/*reaper de remover chaves da Trie*/
-void removeKey(Trie *Trie, unsigned char *key){
-    return removeKeyRecursive(Trie,key,strlen(key),0);
-}
-
 /*Faz a remocao dos noh recursivamente, liberando memoria e atribuindo null para evitar bugs posteriores com o noh pai.*/
 void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenghtTrie) {
     int i;
@@ -171,7 +154,7 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
         if((*Trie)->children[i]!=NULL)
             return;
     
-    ///(*Trie)->brandStruct=NULL;
+    ///(*Trie)->brandStruct = NULL;
     free(*Trie); //liberar
     *Trie = NULL; // apagar para o pai nao apontar para ele
 }
@@ -206,7 +189,7 @@ int main() {
         switch(input[2]){
             case '?':
                 textProcessing(input, tempLine);//usar para remover \n
-                assistant = searchTrie(Trie, tempLine);///retorna posicao de onde estara dentro da struct.
+                assistant = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);///retorna posicao de onde estara dentro da struct.
                 if(assistant == 99999)
                     printf("ID %s nao encontrado.\n", tempLine);
                 else
@@ -220,7 +203,7 @@ int main() {
                 setNameAge(&Trie, &input, data, &i, &j, &lines);
                 textProcessing(input, tempLine);
                 //verifica se o elemento foi inserido, e faz o printf.
-                assistant = searchTrie(Trie, tempLine);
+                assistant = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
                 data[assistant].name[(strlen(data[assistant].name) - 1)] = '\0',
                 printf("Inserido (%s|%s|%s)\n", data[assistant].id, data[assistant].name, data[assistant].age);
                 break;
@@ -228,9 +211,10 @@ int main() {
                 lines -= 1;
                 textProcessingTwo(input);//usar para remover > +
                 textProcessing(input, tempLine);
-                assistant = searchTrie(Trie, tempLine);
+                assistant = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
                 //utilizar funcao de busca para retornar onde esta a struct
-                removeKey(&Trie, tempLine);
+                removeKeyRecursive(&Trie, tempLine, strlen(tempLine), 0);
+                data[assistant].name[(strlen(data[assistant].name) - 1)] = '\0',
                 printf("Removido (%s|%s|%s)\n", data[assistant].id, data[assistant].name, data[assistant].age);
                 //************falta remover da struct**************
                 //e reallocar apos remover da struct
@@ -240,7 +224,7 @@ int main() {
             case 'P':
                 //perguntar ao professor como deletear um ponto da alocado dinamicamente
                 for (i = 1; i <= lines ; i++){
-                    assistant = searchTrie(Trie, data[i].id);
+                    assistant = searchTrieRecursive(Trie, data[i].id, strlen(data[i].id), 0);
                     if(assistant != 99999)
                     //caso nao consiga apagar a struct da forma que quero,
                     // copiar os index validos para outra struct e reutilizar esta fun para salvar
@@ -269,7 +253,5 @@ int main() {
     free(data);//liberar memoria
     free(tempLine);
     return 0;
-    
-    
 }
 
