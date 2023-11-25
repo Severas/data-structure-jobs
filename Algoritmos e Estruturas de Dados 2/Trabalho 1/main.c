@@ -1,7 +1,5 @@
 /**
- * ATENCAO o valor "99999" aparece disversas vezes no codigo, utlizei dele paramelhorar meu controle sobre os erros.
- * Verificar se o null eh obrigatorio com o professor ou se posso continuar com 99999
- * Verificar se posso manter o retorno de posicao ou necessariamente deve ser um endereco de memoria.
+ * ATENCAO o valor "ERROR_NUMBER" aparece disversas vezes no codigo, utlizei dele para facilitar meu controle sobre os erros.
 */
 
 #include <ctype.h>
@@ -10,32 +8,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define     MAX_AGE_SIZE       3
-#define     MAX_ID_SIZE       31
-#define     MAX_LINE_SIZE   1035
-#define     MAX_NAME_SIZE   1001
+#define     ERROR_NUMBER      NULL
+#define     MAX_AGE_SIZE         3
+#define     MAX_ID_SIZE         31
+#define     MAX_LINE_SIZE     1035
+#define     MAX_NAME_SIZE     1001
 
-typedef enum TrieStatus TrieStatus;
-typedef struct Trie Trie;
-typedef struct dataUser dataUser;
+typedef     enum        TrieStatus TrieStatus;
+typedef     struct      Trie Trie;
+typedef     struct      User User;
+/*
+Trie*       createNoh               ();
+User*       searchTrieRecursive     (Trie *, unsigned char *, int, int);
+void        insertTrieRecursive     (Trie **, unsigned char *, User * , int , int);
+//void        setNameAge              (Trie *, char *, User *,int *, int *,int *);
+void        textProcessing          (char *, char *);
+void        textProcessingInputKey  (char *);
+void        removeKeyRecursive      (Trie **, unsigned char *, int , int);
 
-Trie*   createNoh               ();
-Trie*   searchTrieRecursive     (Trie *, unsigned char *, int, int);
-void    insertTrieRecursive     (Trie **, unsigned char *, int , int , int);
-void    setNameAge              (Trie *, char *, dataUser *,int *, int *,int *);
-void    textProcessing          (char *, char *);
-void    textProcessingInputKey       (char *);
-void    removeKeyRecursive      (Trie **, unsigned char *, int , int);
-
-
+*/
 enum TrieStatus { LIVRE = 0, OCUPADO };
 struct Trie {
     struct Trie *children[CHAR_MAX];
-    char data;
     TrieStatus status;
-    int brandStruct;
+    User *brandStruct;
 };
-struct dataUser {
+struct User {
     char id[MAX_ID_SIZE],
     name[MAX_NAME_SIZE],
     age[MAX_AGE_SIZE];
@@ -58,13 +56,13 @@ Trie* createNoh() {
  * Busca recursivamente na Trie por ate que confirme todos os elementos ou que se prove NULL.
  * Obs: retorna o indice do ponteiro que contem as informacoes correspondentes a chave.
 */
-Trie* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lenghtTrie) {
-    //inicialmente utilizei NULL como retorno, porem ao fazer nova pesquisa apos remover o id retornava NULL atribuia 0 (zero), dado essa peculiaridade atribui o  valor 99999 como "99999 Trie nao existente." 
+User* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lenghtTrie) {
+    //inicialmente utilizei NULL como retorno, porem ao fazer nova pesquisa apos remover o id retornava NULL atribuia 0 (zero), dado essa peculiaridade atribui o  valor ERROR_NUMBER como "ERROR_NUMBER Trie nao existente." 
     if(Trie == NULL)
-        return 99999;
+        return ERROR_NUMBER;
     
     if(sizeKey == lenghtTrie)
-        return Trie->brandStruct;
+        return (Trie->brandStruct);
 
     return searchTrieRecursive(Trie->children[key[lenghtTrie]], key, sizeKey,lenghtTrie+1);
 }
@@ -73,25 +71,25 @@ Trie* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lengh
  * Insere recursivamente na Trie por ate que atribua todos os elementos.
  * Obs: Insere o valor e marcar o ultimo caracter.
 */
-void insertTrieRecursive(Trie **Trie, unsigned char *key, int brandStruct, int sizeKey, int lenghtTrie) {
+void insertTrieRecursive(Trie **Trie, unsigned char *key, User *brandStruct, int sizeKey, int lenghtTrie) {
     if(*Trie == NULL) {
         *Trie =  createNoh(key[lenghtTrie]);
-        (*Trie)->brandStruct = 99999;
+        //(*Trie)->brandStruct = ERROR_NUMBER;
     }
 
     if(sizeKey == lenghtTrie) {
-        (*Trie)->brandStruct = brandStruct;
         (*Trie)->status = OCUPADO;
+        (*Trie)->brandStruct = brandStruct;
         return;
     }
 
-    (*Trie)->data = key[lenghtTrie];
+   //(*Trie)->data = key[lenghtTrie];
     
     return insertTrieRecursive(&(*Trie)->children[key[lenghtTrie]],key,brandStruct,sizeKey,lenghtTrie+1);
 }
 
 /*Separa a Sring, insere os elementos na struct e o ID na arvore.*/
-void setNameAge(Trie *Trie, char *tempLine, dataUser *data,int *i, int *j,int *lines) {
+void setNameAge(Trie *Trie, char *tempLine, User *data,int *i, int *j,int *lines) {
     char sup2[MAX_LINE_SIZE], sup1[2], *token;
     int assistant;
 
@@ -113,9 +111,9 @@ void setNameAge(Trie *Trie, char *tempLine, dataUser *data,int *i, int *j,int *l
     tempLine[assistant]='\0';
 
     //copia a idade do usuario para a struct
-    strcpy(data[*i].age,sup1);
+    strcpy(data[*i].age, sup1);
     //divide a string em espacos em  branco
-    token=strtok(tempLine," ");
+    token=strtok(tempLine, " ");
 
     while(token!=NULL) {
         if(*j==0)
@@ -128,8 +126,10 @@ void setNameAge(Trie *Trie, char *tempLine, dataUser *data,int *i, int *j,int *l
         token=strtok(NULL, " ");
     }
 
-    if(*i>0 && *i<=lines)
-        insertTrieRecursive(Trie, &(data[*i].id[0]), *i, strlen(&(data[*i].id[0])), 0);
+    if(*i > 0 && *i < lines){
+        printf("%s %s\n", data[*i].id,data[*i].name );
+        insertTrieRecursive(Trie, &(data[*i].id[0]), &data[*i], strlen(&(data[*i].id[0])), 0);
+    }
     
     data[*i].name[(strlen(data[*i].name) - 1)] = '\0';
     *j=0;
@@ -158,8 +158,11 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
     if(*Trie == NULL)
         return;
 
-    if(sizeKey == lenghtTrie)
+    if(sizeKey == lenghtTrie){
         (*Trie)->status=LIVRE;
+        (*Trie)->brandStruct = 0;
+    }
+        
     else
         removeKeyRecursive(&(*Trie)->children[key[lenghtTrie]], key, sizeKey, lenghtTrie+1);
     
@@ -170,24 +173,25 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
         if((*Trie)->children[i]!=NULL)
             return;
     
-    //(*Trie)->brandStruct = NULL;
+    
     free(*Trie); //liberar
 
     // apagar para o pai nao apontar para ele
-    *Trie = NULL;
+    Trie = NULL;
 }
 
 int main() {
     
     FILE *arch;
     Trie *Trie = NULL;
-    dataUser *data;
+    User *data;
+    User *Sup;
 
     char cod, input[MAX_LINE_SIZE] = "Come abacate, bem. faz bem!", tempLine[MAX_LINE_SIZE];
-    int assistant = 0, i = 0, j = 0, lines = 0, mark = 0;
+    int assistant = 0, control = 0, i = 0, j = 0, k = 0, lines = 0, mark = 0;
     
     // open the banco.txt
-    arch = fopen("banco.txt","r+");
+    arch = fopen("banco.txt","r");
 
     //verfica se existe erro na leitura
     if(arch == NULL) {
@@ -199,8 +203,8 @@ int main() {
     cod = fgetc(arch);
     // faz conversao de  char para int
     lines = cod - '0';
-
-    data = (dataUser*) malloc((lines+1) * sizeof(dataUser));
+    control+=lines;
+    data = (User*) malloc((lines+1) * sizeof(User));
     
     if(arch == NULL)
         printf("Erro, nao foi possivel abrir o arquivo\n");
@@ -208,7 +212,7 @@ int main() {
         while((fgets(tempLine, sizeof(tempLine), arch)) != NULL)
             //faz o tratamento da string e armazena na struct data.
             setNameAge(&Trie, &tempLine, data, &i, &j, &lines);
-    
+
     // input
     while (input[0] != 'F') {
 
@@ -219,84 +223,112 @@ int main() {
                 // tratar o texto e remover "\n"
                 textProcessing(input, tempLine);
 
-                //retorna posicao de onde estara dentro da struct.
-                assistant = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
-                
-                if(assistant == 99999)
+                //verifica se o elemento foi inserido na Trie e qual seu endereco.
+                Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
+
+                if(Sup == ERROR_NUMBER)
                     printf("ID %s nao encontrado.\n", tempLine);
                 else
-                    printf("(%s|%s|%s)\n", data[assistant].id, data[assistant].name, data[assistant].age);
+                    printf("(%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
+
+                tempLine[0]=0;
                 break;
 
             case '+':
-                //realoca memoria para adicionar um novo elemento e +1 no contador de linhas
-                lines += 1;
-                data = (dataUser*) realloc(data, (lines+1)*sizeof(dataUser));
-
                 //usar para remover "> +"
                 textProcessingInputKey(input);
-
-                setNameAge(&Trie, &input, data, &i, &j, &lines);
+                // tratar o texto e remover "\n"
                 textProcessing(input, tempLine);
 
+                //operacoes para controle e linhas e posicao
+                i+=1;
+                lines += 2;
+                
+                //faz o tratamento da string e armazena na struct data.
+                setNameAge(&Trie, &input, data, &i, &j, &lines);
+                control += 1;
+                i-=1;
+
                 //verifica se o elemento foi inserido, e faz o printf.
-                assistant = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
-                printf("Inserido (%s|%s|%s)\n", data[assistant].id, data[assistant].name, data[assistant].age);
+                Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
+                
+                printf("Inserido (%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
                 break;
 
             case '-':
                 //usar para remover "> -"
                 textProcessingInputKey(input);
+
+                //verifica onde o elemtento inserido e qual sua posicao.
                 textProcessing(input, tempLine);
 
-                assistant = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
-
                 //utilizar funcao de busca para retornar onde esta a struct
-                removeKeyRecursive(&Trie, tempLine, strlen(tempLine), 0);
-                printf("Removido (%s|%s|%s)\n", data[assistant].id, data[assistant].name, data[assistant].age);
-
-                // Retrocede os elementos da struct que estao a frente da posicao removida se necessario
-                for(i = assistant; i < lines; i++)
-                    data[i] = data[i+1];
-
-                //realoca a struct na memoria com o novo tamanho.
-                lines -= 1;
-                data=(dataUser*) realloc(data,(lines+1)*sizeof(dataUser));
+                Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
+                if(Sup!= NULL){
+                    //remove efetivamete a chave da trie
+                    removeKeyRecursive(&Trie, Sup->id, strlen(Sup->id), 0);
+                    printf("Removido (%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
+                                
+                    //realoca a struct na memoria com o novo tamanho.
+                   // data=(User*) realloc(data,(control+1)*sizeof(User)); inicialmente tentava realocar a memoria, porem geravam diversos bugs na insercao, ao remover o realloc tudo
+                    lines+=1;
+                    control-=1;
+                }else{
+                    printf("ID %s nao encontrado.", tempLine);
+                }
                 break;
 
             case 'P':
-                //perguntar ao professor como deletar um ponto alocado dinamicamente
-                for (i = 1; i <= lines ; i++) {
-                    //faz a busca de todos os elementos que sao validos e printa 
-                    assistant = searchTrieRecursive(Trie, data[i].id, strlen(data[i].id), 0);
+                //faz a busca de todos os elementos que sao validos e printa
+                for (k = 0; k <= lines ; k++) {
+                    //verifica se o elemento foi inserido na Trie e qual seu endereco.
+                    Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
 
-                    if(assistant != 99999) {
-                        printf("(%s|%s|%s)\n", data[i].id, data[i].name, data[i].age);
+                    if(Sup->id != NULL) {
+                        //printa os dados do usuario
+                        printf("(%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
                     }
                 }
-                mark += 1;
-                //printar e salvar em ordem alfabetica
                 break;
 
             case 'S':
-            //printar e salvar em ordem alfabetica
-            //salvar alteracao em um novo txt
-            //lines vai precisar de lines+1 o numero de linhas nao esta salvo
+                //fecha o arquivo aberto com 'r' e abre com 'w'
+                fclose(arch);
+                arch=fopen("banco.txt", "w");
+                //escreve no arquivo o numero de cadastros
+                fprintf(arch,"%d\n", control);
+                
+                for (k = 0; k <= lines ; k++) {
+                    //verifica se as chaves estao na trie
+                    Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
+
+                    if(Sup->id == data[k].id) {
+                        //escreve no txt
+                        fprintf(arch,"%s %s %s\n", data[k].id, data[k].name, data[k].age);
+                    }
+                }
+                printf("banco.txt salvo\n");
+
+                //fecha o arquivo aberto com 'w' e abre com 'r+'
+                fclose(arch);
+                arch=fopen("banco.txt","r");
                 break;
 
             case 'F':
-            //finalizar a execucao do programa;
+                //finalizar a execucao do programa;
+                fclose(arch);
+                free(data);
+                free(Trie);
+                free(Sup);
+
+                //encerra o menu.
+                input[0] = 'F';
                 break;
 
             default:
                 printf("Desculpe, nao entendi sua resposta\n");
         }
     }
-    //verificar se existe necessidade de deixar fora do switch
-    fclose(arch);       //fechar arquivo
-    free(data);         //liberar memoria
-    free(tempLine);
-
     return 0;
 }
 
