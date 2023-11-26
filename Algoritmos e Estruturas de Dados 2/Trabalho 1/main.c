@@ -1,5 +1,5 @@
 /**
- * ATENCAO o valor "ERROR_NUMBER" aparece disversas vezes no codigo, utlizei dele para facilitar meu controle sobre os erros.
+ * fazer comentario sobre char_max
 */
 
 #include <ctype.h>
@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define     ERROR_NUMBER      NULL
 #define     MAX_AGE_SIZE         3
 #define     MAX_ID_SIZE         31
 #define     MAX_LINE_SIZE     1035
@@ -17,22 +16,29 @@
 typedef     enum        TrieStatus TrieStatus;
 typedef     struct      Trie Trie;
 typedef     struct      User User;
-/*
+
 Trie*       createNoh               ();
 User*       searchTrieRecursive     (Trie *, unsigned char *, int, int);
 void        insertTrieRecursive     (Trie **, unsigned char *, User * , int , int);
-//void        setNameAge              (Trie *, char *, User *,int *, int *,int *);
+void        setNameAge              (Trie *, char *, User *,int *, int *,int *);
 void        textProcessing          (char *, char *);
 void        textProcessingInputKey  (char *);
 void        removeKeyRecursive      (Trie **, unsigned char *, int , int);
 
-*/
+
 enum TrieStatus { LIVRE = 0, OCUPADO };
+
+//declaracao da struct da trie
 struct Trie {
     struct Trie *children[CHAR_MAX];
     TrieStatus status;
     User *brandStruct;
 };
+
+/*
+* declaracao da struct do usuario, em relacao a idade optei por utilizar string,
+* visto que nao vi muito sentido em armazenar como inteiro, ja que a variavel sofreria calculo sobre a idade.
+*/
 struct User {
     char id[MAX_ID_SIZE],
     name[MAX_NAME_SIZE],
@@ -42,10 +48,14 @@ struct User {
 /*cria um novo noh*/
 Trie* createNoh() {
     int i;
+
+    //aloca  memoria para um novo noh
     Trie* noh = malloc(sizeof(Trie));
 
+    //seta o status do noh como livre
     noh->status = LIVRE;
 
+    //atribui null para os filhos
     for( i = 0; i < CHAR_MAX; i++)
         noh->children[i] = NULL;
 
@@ -57,10 +67,11 @@ Trie* createNoh() {
  * Obs: retorna o indice do ponteiro que contem as informacoes correspondentes a chave.
 */
 User* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lenghtTrie) {
-    //inicialmente utilizei NULL como retorno, porem ao fazer nova pesquisa apos remover o id retornava NULL atribuia 0 (zero), dado essa peculiaridade atribui o  valor ERROR_NUMBER como "ERROR_NUMBER Trie nao existente." 
+    //verifica se eh nulo, caso seja retorna null
     if(Trie == NULL)
-        return ERROR_NUMBER;
+        return NULL;
     
+    // percore a trie ate que ate completar a palavra, e retorna o endereco de memoria da struct onde esta
     if(sizeKey == lenghtTrie)
         return (Trie->brandStruct);
 
@@ -72,18 +83,16 @@ User* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lengh
  * Obs: Insere o valor e marcar o ultimo caracter.
 */
 void insertTrieRecursive(Trie **Trie, unsigned char *key, User *brandStruct, int sizeKey, int lenghtTrie) {
-    if(*Trie == NULL) {
+    //cria novo noh se for NULL
+    if(*Trie == NULL)
         *Trie =  createNoh(key[lenghtTrie]);
-        //(*Trie)->brandStruct = ERROR_NUMBER;
-    }
 
+    //se for ultimo caracter, marca como ocupado e salva o endereco de memoria da struct com as informacoes da chave.
     if(sizeKey == lenghtTrie) {
         (*Trie)->status = OCUPADO;
         (*Trie)->brandStruct = brandStruct;
         return;
     }
-
-   //(*Trie)->data = key[lenghtTrie];
     
     return insertTrieRecursive(&(*Trie)->children[key[lenghtTrie]],key,brandStruct,sizeKey,lenghtTrie+1);
 }
@@ -130,7 +139,7 @@ void setNameAge(Trie *Trie, char *tempLine, User *data,int *i, int *j,int *lines
         printf("%s %s\n", data[*i].id,data[*i].name );
         insertTrieRecursive(Trie, &(data[*i].id[0]), &data[*i], strlen(&(data[*i].id[0])), 0);
     }
-    
+    // remove o " " do ultimo do nome do usuario
     data[*i].name[(strlen(data[*i].name) - 1)] = '\0';
     *j=0;
     *i+=1;
@@ -158,6 +167,7 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
     if(*Trie == NULL)
         return;
 
+    //verifica se eh o ultimo elemento e atribui livre e modifica o endereco de memoria para 0.
     if(sizeKey == lenghtTrie){
         (*Trie)->status=LIVRE;
         (*Trie)->brandStruct = 0;
@@ -166,6 +176,7 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
     else
         removeKeyRecursive(&(*Trie)->children[key[lenghtTrie]], key, sizeKey, lenghtTrie+1);
     
+    //verifica se algum noh ja esta ocupado, para nao remover por acidente.
     if((*Trie)->status == OCUPADO)
         return;
 
@@ -173,10 +184,10 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
         if((*Trie)->children[i]!=NULL)
             return;
     
-    
-    free(*Trie); //liberar
+    //liberar memoria
+    free(*Trie);
 
-    // apagar para o pai nao apontar para ele
+    // remover para o pai nao apontar para ele
     Trie = NULL;
 }
 
@@ -226,7 +237,7 @@ int main() {
                 //verifica se o elemento foi inserido na Trie e qual seu endereco.
                 Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
 
-                if(Sup == ERROR_NUMBER)
+                if(Sup == NULL)
                     printf("ID %s nao encontrado.\n", tempLine);
                 else
                     printf("(%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
