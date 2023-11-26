@@ -1,21 +1,19 @@
-/**
- * fazer comentario sobre char_max
-*/
+/* David Marcelo Gois RA: 1991639*/
 
-#include <ctype.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include    <ctype.h>
+#include    <limits.h>
+#include    <stdio.h>
+#include    <stdlib.h>
+#include    <string.h>
 
-#define     MAX_AGE_SIZE         3
-#define     MAX_ID_SIZE         31
-#define     MAX_LINE_SIZE     1035
-#define     MAX_NAME_SIZE     1001
+#define     MAX_AGE_SIZE               3
+#define     MAX_ID_SIZE               31
+#define     MAX_LINE_SIZE           1035
+#define     MAX_NAME_SIZE           1001
 
-typedef     enum        TrieStatus TrieStatus;
-typedef     struct      Trie Trie;
-typedef     struct      User User;
+typedef     enum                    TrieStatus TrieStatus;
+typedef     struct                  Trie Trie;
+typedef     struct                  User User;
 
 Trie*       createNoh               ();
 User*       searchTrieRecursive     (Trie *, unsigned char *, int, int);
@@ -75,7 +73,7 @@ User* searchTrieRecursive(Trie* Trie, unsigned char *key, int sizeKey, int lengh
     if(sizeKey == lenghtTrie)
         return (Trie->brandStruct);
 
-    return searchTrieRecursive(Trie->children[key[lenghtTrie]], key, sizeKey,lenghtTrie+1);
+    return searchTrieRecursive(Trie->children[key[lenghtTrie]], key, sizeKey, (lenghtTrie+1));
 }
 
 /**
@@ -94,55 +92,54 @@ void insertTrieRecursive(Trie **Trie, unsigned char *key, User *brandStruct, int
         return;
     }
     
-    return insertTrieRecursive(&(*Trie)->children[key[lenghtTrie]],key,brandStruct,sizeKey,lenghtTrie+1);
+    return insertTrieRecursive(&(*Trie)->children[key[lenghtTrie]], key, brandStruct, sizeKey, (lenghtTrie+1));
 }
 
 /*Separa a Sring, insere os elementos na struct e o ID na arvore.*/
-void setNameAge(Trie *Trie, char *tempLine, User *data,int *i, int *j,int *lines) {
+void setNameAge(Trie *Trie, char *tempLine, User *data,int *i, int *j, int *lines) {
     char sup2[MAX_LINE_SIZE], sup1[2], *token;
     int assistant;
 
     //copia a string para facilitar a manipulacao
-    strcpy(sup2,tempLine);
+    strcpy(sup2, tempLine);
     // extrai ponto onde comecao os numeros
-    assistant=strcspn(tempLine,"0123456789");
-    sup1[0]=sup2[assistant];
+    assistant = strcspn(tempLine, "0123456789");
+    sup1[0] = sup2[assistant];
 
     // caso a idade tnh apenas um digito, corta caracteres desnecessarios
-    if(sup2[assistant+1]=='\n')
-        sup1[1]=0;
+    if(sup2[assistant+1] == '\n')
+        sup1[1] =0;
     else
-        sup1[1]=sup2[assistant+1];
+        sup1[1] = sup2[assistant+1];
     //corta caracteres desnecessarios, sup1 recebe os digitos referente a idade do usuario
-    sup1[2]=0;
+    sup1[2] = 0;
 
     //atribui \0 onde comeca os numeros
-    tempLine[assistant]='\0';
+    tempLine[assistant] = '\0';
 
     //copia a idade do usuario para a struct
     strcpy(data[*i].age, sup1);
     //divide a string em espacos em  branco
     token=strtok(tempLine, " ");
 
-    while(token!=NULL) {
-        if(*j==0)
-            strcpy(data[*i].id, token), *j+=1;
+    while(token != NULL) {
+        if(*j == 0)
+            strcpy(data[*i].id, token), *j += 1;
         else {
             //concatena os nomes para dentro da struct.
             strcat(data[*i].name, token);
             strcat(data[*i].name, " ");
         }
-        token=strtok(NULL, " ");
+        token = strtok(NULL, " ");
     }
 
-    if(*i > 0 && *i < lines){
-        printf("%s %s\n", data[*i].id,data[*i].name );
-        insertTrieRecursive(Trie, &(data[*i].id[0]), &data[*i], strlen(&(data[*i].id[0])), 0);
+    if(*i > 0 && *i < lines) {
+        insertTrieRecursive(Trie, &(data[*i].id), &data[*i], strlen(&(data[*i].id)), 0);
     }
     // remove o " " do ultimo do nome do usuario
     data[*i].name[(strlen(data[*i].name) - 1)] = '\0';
-    *j=0;
-    *i+=1;
+    *j = 0;
+    *i += 1;
 }
 /*remove o \n da entrada de texto do usuario*/
 void textProcessing(char *input, char *tempLine) {
@@ -168,20 +165,20 @@ void removeKeyRecursive(Trie **Trie, unsigned char *key, int sizeKey, int lenght
         return;
 
     //verifica se eh o ultimo elemento e atribui livre e modifica o endereco de memoria para 0.
-    if(sizeKey == lenghtTrie){
-        (*Trie)->status=LIVRE;
+    if(sizeKey == lenghtTrie) {
+        (*Trie)->status = LIVRE;
         (*Trie)->brandStruct = 0;
     }
         
     else
-        removeKeyRecursive(&(*Trie)->children[key[lenghtTrie]], key, sizeKey, lenghtTrie+1);
+        removeKeyRecursive(&(*Trie)->children[key[lenghtTrie]], key, sizeKey, (lenghtTrie+1));
     
     //verifica se algum noh ja esta ocupado, para nao remover por acidente.
     if((*Trie)->status == OCUPADO)
         return;
 
     for ( i = 0; i < CHAR_MAX; i++)
-        if((*Trie)->children[i]!=NULL)
+        if((*Trie)->children[i] != NULL)
             return;
     
     //liberar memoria
@@ -212,10 +209,15 @@ int main() {
 
     //faz a leitura do primeiro elemento do txt, o qual eh por informar o numero pix cadastrados
     cod = fgetc(arch);
+
     // faz conversao de  char para int
     lines = cod - '0';
-    control+=lines;
-    data = (User*) malloc((lines+1) * sizeof(User));
+
+    //somo as linhas no meu controle de linhas.
+    control += lines;
+
+    //aloco a struct
+    data = (User*) malloc((MAX_LINE_SIZE) * sizeof(User));
     
     if(arch == NULL)
         printf("Erro, nao foi possivel abrir o arquivo\n");
@@ -224,121 +226,127 @@ int main() {
             //faz o tratamento da string e armazena na struct data.
             setNameAge(&Trie, &tempLine, data, &i, &j, &lines);
 
-    // input
-    while (input[0] != 'F') {
+    // menu
+    while (input[2] != 'F') {
+        //leitura do menu
+        fgets(input, MAX_LINE_SIZE, stdin);
+        
+        //verifico se atende ao padrao do professor de utiliar "> ? chave"
+        if(input[0] == '>')
+            switch(input[2]){
+                case '?':
+                    // tratar o texto e remover "\n"
+                    textProcessing(input, tempLine);
 
-        fgets(input,MAX_LINE_SIZE,stdin);
-
-        switch(input[2]){
-            case '?':
-                // tratar o texto e remover "\n"
-                textProcessing(input, tempLine);
-
-                //verifica se o elemento foi inserido na Trie e qual seu endereco.
-                Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
-
-                if(Sup == NULL)
-                    printf("ID %s nao encontrado.\n", tempLine);
-                else
-                    printf("(%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
-
-                tempLine[0]=0;
-                break;
-
-            case '+':
-                //usar para remover "> +"
-                textProcessingInputKey(input);
-                // tratar o texto e remover "\n"
-                textProcessing(input, tempLine);
-
-                //operacoes para controle e linhas e posicao
-                i+=1;
-                lines += 2;
-                
-                //faz o tratamento da string e armazena na struct data.
-                setNameAge(&Trie, &input, data, &i, &j, &lines);
-                control += 1;
-                i-=1;
-
-                //verifica se o elemento foi inserido, e faz o printf.
-                Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
-                
-                printf("Inserido (%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
-                break;
-
-            case '-':
-                //usar para remover "> -"
-                textProcessingInputKey(input);
-
-                //verifica onde o elemtento inserido e qual sua posicao.
-                textProcessing(input, tempLine);
-
-                //utilizar funcao de busca para retornar onde esta a struct
-                Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
-                if(Sup!= NULL){
-                    //remove efetivamete a chave da trie
-                    removeKeyRecursive(&Trie, Sup->id, strlen(Sup->id), 0);
-                    printf("Removido (%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
-                                
-                    //realoca a struct na memoria com o novo tamanho.
-                   // data=(User*) realloc(data,(control+1)*sizeof(User)); inicialmente tentava realocar a memoria, porem geravam diversos bugs na insercao, ao remover o realloc tudo
-                    lines+=1;
-                    control-=1;
-                }else{
-                    printf("ID %s nao encontrado.", tempLine);
-                }
-                break;
-
-            case 'P':
-                //faz a busca de todos os elementos que sao validos e printa
-                for (k = 0; k <= lines ; k++) {
                     //verifica se o elemento foi inserido na Trie e qual seu endereco.
-                    Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
+                    Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
 
-                    if(Sup->id != NULL) {
-                        //printa os dados do usuario
-                        printf("(%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
+                    //verificoo retorno da funcao de busca e print.
+                    if(Sup == NULL)
+                        printf("ID %s nao encontrado.\n\n", tempLine);
+                    else
+                        printf("(%s|%s|%s)\n\n", Sup->id, Sup->name, Sup->age);
+
+                    tempLine[0] = 0;
+                    break;
+
+                case '+':
+                    //usar para remover "> +"
+                    textProcessingInputKey(input);
+
+                    // tratar o texto e remover "\n"
+                    textProcessing(input, tempLine);
+
+                    //operacoes para controle e linhas e posicao
+                    i+=1;
+                    lines += 2;
+                    
+                    //faz o tratamento da string e armazena na struct data.
+                    setNameAge(&Trie, &input, data, &i, &j, &lines);
+                    control += 1;
+                    i-=1;
+
+                    //verifica se o elemento foi inserido, e faz o printf.
+                    Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
+                    printf("Inserido (%s|%s|%s)\n\n", Sup->id, Sup->name, Sup->age);
+                    break;
+
+                case '-':
+                    //usar para remover "> -"
+                    textProcessingInputKey(input);
+
+                    //verifica onde o elemtento inserido e qual sua posicao.
+                    textProcessing(input, tempLine);
+
+                    //utilizar funcao de busca para retornar onde esta a struct
+                    Sup = searchTrieRecursive(Trie, tempLine, strlen(tempLine), 0);
+
+                    //verifica se esta na struct
+                    if(Sup != NULL) {
+                        //remove efetivamete a chave da trie
+                        removeKeyRecursive(&Trie, Sup->id, strlen(Sup->id), 0);
+                        printf("Removido (%s|%s|%s)\n\n", Sup->id, Sup->name, Sup->age);
+                                    
+                        //controle de linhas
+                        lines += 1;
+                        control -= 1;
+                    } else
+                        printf("ID %s nao encontrado.\n\n", tempLine);
+                    break;
+
+                case 'P':
+                    //faz a busca de todos os elementos que sao validos e printa
+                    for (k = 0; k <= lines ; k++) {
+                        //verifica se o elemento foi inserido na Trie e qual seu endereco.
+                        Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
+
+                        if(Sup->id != NULL)
+                            //printa os dados do usuario
+                            printf("(%s|%s|%s)\n", Sup->id, Sup->name, Sup->age);
                     }
-                }
-                break;
+                    printf("\n");
+                    break;
 
-            case 'S':
-                //fecha o arquivo aberto com 'r' e abre com 'w'
-                fclose(arch);
-                arch=fopen("banco.txt", "w");
-                //escreve no arquivo o numero de cadastros
-                fprintf(arch,"%d\n", control);
-                
-                for (k = 0; k <= lines ; k++) {
-                    //verifica se as chaves estao na trie
-                    Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
+                case 'S':
+                    //fecha o arquivo aberto com 'r' e abre com 'w'
+                    fclose(arch);
+                    arch=fopen("banco.txt", "w");
 
-                    if(Sup->id == data[k].id) {
-                        //escreve no txt
-                        fprintf(arch,"%s %s %s\n", data[k].id, data[k].name, data[k].age);
+                    //escreve no arquivo o numero de cadastros
+                    fprintf(arch,"%d\n", control);
+                    
+                    for (k = 0; k <= lines ; k++) {
+                        //verifica se as chaves estao na trie
+                        Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
+
+                        if(Sup->id == data[k].id)
+                            //escreve no txt
+                            fprintf(arch,"%s %s %s\n", data[k].id, data[k].name, data[k].age);
                     }
-                }
-                printf("banco.txt salvo\n");
+                    printf("banco.txt salvo\n\n");
 
-                //fecha o arquivo aberto com 'w' e abre com 'r+'
-                fclose(arch);
-                arch=fopen("banco.txt","r");
-                break;
+                    //fecha o arquivo aberto com 'w' e abre com 'r+'
+                    fclose(arch);
+                    arch=fopen("banco.txt","r");
+                    break;
 
-            case 'F':
-                //finalizar a execucao do programa;
-                fclose(arch);
-                free(data);
-                free(Trie);
-                free(Sup);
+                case 'F':
+                    //finalizar a execucao do programa;
+                    fclose(arch);
+                    free(data);
+                    free(Trie);
+                    free(Sup);
 
-                //encerra o menu.
-                input[0] = 'F';
-                break;
+                    //encerra o menu.
+                    input[2] = 'F';
+                    printf("\n");
+                    break;
 
-            default:
-                printf("Desculpe, nao entendi sua resposta\n");
-        }
+                default:
+                    printf("Desculpe, nao entendi sua resposta\n");
+            }
+        else
+            printf("Eh necessario usar '> ' antes do comando\n\n");
     }
     return 0;
 }
