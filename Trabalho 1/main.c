@@ -334,7 +334,15 @@ int main() {
                     //finalizar a execucao do programa;
                     fclose(arch);
                     free(data);
-                    free(Trie);
+                    
+                    // Percorre a trie removendo e liberando memoria
+                    for (k = 0; k <= lines ; k++) {
+                        //verifica se o elemento foi inserido na Trie e qual seu endereco.
+                        Sup = searchTrieRecursive(Trie, data[k].id, strlen(data[k].id), 0);
+
+                        if(Sup->id != NULL)
+                            removeKeyRecursive(&Trie, Sup->id, strlen(Sup->id), 0);
+                    }
                     free(Sup);
 
                     //encerra o menu.
